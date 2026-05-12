@@ -6,6 +6,8 @@
 
 Our code will be released soon... 🚀🚀🚀
 
+News: Our code is already under review and will be public in a few weeks!
+
 <table class="center">
   <tr>
     <td width=100% style="border: none"><img src="assets/dip_visual.png" style="width:100%"></td>
