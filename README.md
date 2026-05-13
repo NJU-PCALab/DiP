@@ -6,7 +6,7 @@
 
 Our code will be released soon... 🚀🚀🚀
 
-News: Our code is already under review and will be public in a few weeks!
+News: Our code is already under review and will be public in a few weeks! We will also open-source our DiP-based T2I project ([L2P](https://github.com/NJU-PCALab/L2P)), stay tuned!
 
 <table class="center">
   <tr>
