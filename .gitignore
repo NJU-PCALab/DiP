@@ -1,0 +1,39 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Logs / runs / outputs
+workdirs/
+wandb/
+lightning_logs/
+*.log
+*.out
+*.err
+
+# Checkpoints / samples
+*.ckpt
+*.pt
+*.pth
+*.npz
+samples/
+val/
+
+# Pretrained model cache
+pretrained/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python virtualenv
+venv/
+.env/
+env/
+.python-version

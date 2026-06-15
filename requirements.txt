@@ -1,0 +1,10 @@
+lightning==2.5.0.post0
+omegaconf==2.3.0
+torch==2.5.0
+diffusers==0.30.0
+transformers
+jsonargparse[signatures]==4.41.0
+torchvision
+timm
+accelerate
+gradio

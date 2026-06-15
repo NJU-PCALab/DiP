@@ -1,0 +1,228 @@
+# lightning.pytorch==2.6.0
+seed_everything: 0
+torch_hub_dir: ./pretrained/torch_hub
+huggingface_cache_dir: null
+trainer:
+  accelerator: auto
+  strategy: auto
+  devices: auto
+  num_nodes: 1
+  precision: bf16-mixed
+  logger:
+    class_path: lightning.pytorch.loggers.WandbLogger
+    init_args:
+      name: dip_xl
+      save_dir: .
+      version: null
+      offline: false
+      dir: null
+      id: null
+      anonymous: null
+      project: dip
+      log_model: false
+      experiment: null
+      prefix: ''
+      checkpoint_name: null
+      add_file_policy: mutable
+      entity: null
+      notes: null
+      tags: null
+      config: null
+      config_exclude_keys: null
+      config_include_keys: null
+      allow_val_change: null
+      group: null
+      job_type: null
+      mode: null
+      force: null
+      reinit: null
+      resume: null
+      resume_from: null
+      fork_from: null
+      save_code: null
+      tensorboard: null
+      sync_tensorboard: null
+      monitor_gym: null
+      settings: null
+  callbacks:
+  - class_path: src.callbacks.model_checkpoint.CheckpointHook
+    init_args:
+      dirpath: null
+      filename: null
+      monitor: null
+      verbose: false
+      save_last: true
+      save_top_k: -1
+      save_on_exception: false
+      save_weights_only: false
+      mode: min
+      auto_insert_metric_name: true
+      every_n_train_steps: 10000
+      train_time_interval: null
+      every_n_epochs: null
+      save_on_train_epoch_end: null
+      enable_version_counter: true
+  - class_path: src.callbacks.save_images.SaveImagesHook
+    init_args:
+      save_dir: val
+      save_compressed: true
+  fast_dev_run: false
+  max_epochs: null
+  min_epochs: null
+  max_steps: 24000000
+  min_steps: null
+  max_time: null
+  limit_train_batches: null
+  limit_val_batches: null
+  limit_test_batches: null
+  limit_predict_batches: null
+  overfit_batches: 0.0
+  val_check_interval: 100000
+  check_val_every_n_epoch: null
+  num_sanity_val_steps: 0
+  log_every_n_steps: 50
+  enable_checkpointing: null
+  enable_progress_bar: null
+  enable_model_summary: null
+  accumulate_grad_batches: 1
+  gradient_clip_val: null
+  gradient_clip_algorithm: null
+  deterministic: null
+  benchmark: null
+  inference_mode: true
+  use_distributed_sampler: false
+  profiler: null
+  detect_anomaly: false
+  barebones: false
+  plugins:
+  - class_path: src.plugins.local_env.LocalEnvironment
+  sync_batchnorm: false
+  reload_dataloaders_every_n_epochs: 0
+  default_root_dir: ./workdirs
+  enable_autolog_hparams: true
+  model_registry: null
+model:
+  vae:
+    class_path: src.models.autoencoder.pixel.PixelAE
+    init_args:
+      scale: 1.0
+      shift: 0.0
+  conditioner:
+    class_path: src.models.conditioner.class_label.LabelConditioner
+    init_args:
+      num_classes: 1000
+  denoiser:
+    class_path: src.models.transformer.dip.DiP
+    init_args:
+      in_channels: 3
+      num_groups: 16
+      hidden_size: 1152
+      hidden_size_x: 64
+      nerf_mlpratio: 2
+      num_blocks: 30
+      num_cond_blocks: 26
+      patch_size: 16
+      num_classes: 1000
+      learn_sigma: true
+      deep_supervision: 0
+      weight_path: null
+      load_ema: false
+  diffusion_trainer:
+    class_path: src.diffusion.flow_matching.training_repa.REPATrainer
+    init_args:
+      scheduler:
+        class_path: src.diffusion.flow_matching.scheduling.LinearScheduler
+      loss_weight_fn: src.diffusion.flow_matching.training_repa.constant
+      feat_loss_weight: 0.5
+      lognorm_t: true
+      timeshift: 1.0
+      encoder:
+        class_path: src.models.encoder.DINOv2
+        init_args:
+          weight_path: ./pretrained/torch_hub/facebookresearch_dinov2_main/dinov2_vitb14
+          base_patch_size: 16
+      align_layer: 8
+      proj_denoiser_dim: 1152
+      proj_hidden_dim: 1152
+      proj_encoder_dim: 768
+      null_condition_p: 0.1
+  diffusion_sampler:
+    class_path: src.diffusion.flow_matching.sampling.EulerSampler
+    init_args:
+      w_scheduler:
+        class_path: src.diffusion.flow_matching.scheduling.LinearScheduler
+      timeshift: 1
+      guidance_interval_min: 0.1
+      guidance_interval_max: 1.0
+      step_fn: src.diffusion.flow_matching.sampling.ode_step_fn
+      last_step: null
+      last_step_fn: src.diffusion.flow_matching.sampling.ode_step_fn
+      scheduler:
+        class_path: src.diffusion.flow_matching.scheduling.LinearScheduler
+      guidance_fn: src.diffusion.base.guidance.simple_guidance_fn
+      num_steps: 100
+      guidance: 1.0
+  ema_tracker:
+    class_path: src.callbacks.simple_ema.SimpleEMA
+    init_args:
+      decay: 0.9999
+      every_n_steps: 1
+  optimizer:
+    class_path: torch.optim.AdamW
+    init_args:
+      lr: 0.0001
+      betas:
+      - 0.9
+      - 0.999
+      eps: 1.0e-08
+      weight_decay: 0.001
+      amsgrad: false
+      maximize: false
+      foreach: null
+      capturable: false
+      differentiable: false
+      fused: null
+  lr_scheduler: null
+  eval_original_model: false
+data:
+  train_dataset:
+    class_path: src.data.dataset.imagenet.PixImageNet
+    init_args:
+      root: /path/to/imagenet/train
+      resolution: 256
+      random_crop: false
+  eval_dataset:
+    class_path: src.data.dataset.randn.ClassLabelRandomNDataset
+    init_args:
+      latent_shape:
+      - 3
+      - 256
+      - 256
+      num_classes: 1000
+      conditions: null
+      seeds: null
+      max_num_instances: 50000
+      num_samples_per_instance: -1
+  pred_dataset:
+    class_path: src.data.dataset.randn.ClassLabelRandomNDataset
+    init_args:
+      latent_shape:
+      - 3
+      - 256
+      - 256
+      num_classes: 1000
+      conditions: null
+      seeds: null
+      max_num_instances: 50000
+      num_samples_per_instance: -1
+  train_batch_size: 32
+  train_num_workers: 4
+  train_prefetch_factor: 8
+  eval_batch_size: 32
+  eval_num_workers: 4
+  pred_batch_size: 32
+  pred_num_workers: 1
+tags:
+  exp: dip_xl
+ckpt_path: null
+weights_only: null
